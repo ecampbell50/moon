@@ -1,0 +1,20 @@
+#!/bin/bash
+
+###
+# This script copies multiple directories to another directory
+# Where i/$i are the directories to be copied
+# Use this to test code on directories (e.g. removals, file creation) without clogging up the main directory
+###
+
+cd <path-to-file>
+
+for i in *
+do
+  	if  [[ $i == *.sub || $i == *.sh || $i == *.txt ]]; then        # This is specifiying what to ignore in the directory and not copy them (files)
+                continue
+        else
+            	cp -r <path-to-source>/$i <path-to-dest>
+        fi
+done
+
+cd $OLDPWD
