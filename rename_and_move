@@ -1,0 +1,38 @@
+#!/bin.bash
+
+#This script will rename the prokka output gff file (PROKKA_??????.gff) to the name of the primary folder
+
+for i in `ls -d */`                                   # `ls -d */` is a command that lists every directory in a directory
+do
+  	NAME=${i::-1}                                     # Y=${X::-1} will take one character off the end of the string X and assign the output to Y
+    cd $i
+	  echo "In directory: $NAME"
+    for j in `ls -d */`
+      do
+        PROKKA=${j::-1}
+        cd $j
+        echo "In directory: $PROKKA"
+        mv *.gff $NAME.gff                            # Renames anything in the directory ending with .gff to the primary file name (from PATRIC)
+        cd ..                                         # For some reason been needing to add this at the end of my for loops
+      done
+    cd ..
+done
+
+# This next script will then copy the file to the parent folder, to make it a bit easiert to access later
+
+DIR=$PWD                              # Sets the current directory as DIR
+for i in `ls -d */`                   # Same as before, better than fixing with an IF statement, just need to edit it later to reuse i something else
+do
+  NAME=${i::-1}
+  cd $i
+	echo "In directory: $NAME"
+  for j in `ls -d */`
+  do
+    PROKKA=${j::-1}
+    cd $j
+    echo "In directory: $PROKKA"
+    cp *.gff $DIR/$i                   # Copies any file ending in .gff to the parent file (could replace * with $NAME
+    cd ..
+   done
+ cd ..
+done
