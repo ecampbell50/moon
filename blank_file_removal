@@ -1,0 +1,61 @@
+#!/bin/bash
+
+######
+# This script is to find files that have no data (blanks) from a colleciton of directories (e.g. from PATRIC)
+# And remove them
+# Then make the whole script automated so it can be re-done with future downloads
+######
+
+echo "Please specify path to directories for removal:"
+read PATHWAY                                                    # Specify the pathway each time so don't have to be in the exact directory when executing
+
+cd $PATHWAY                                                     # Entering the correct directory to begin
+
+DIR=$PWD                                                        # Specifying the cd as a variable to use later in the script to make it reusable
+
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~"                              # Just general info for the user
+echo "DIRECTORY: $DIR"
+echo "NO. OF DIRECTORIES BEFORE REMOVAL:"
+ls -d * | wc -l
+
+for i in *
+do
+  	if [[ $i == *.?? || $i == *.??? ]]; then        # This is just to skip over any files that will be created by this script so it doesn't show up in the output
+                continue
+        else
+            	cd $DIR/$i                              # This cd's into the directory with the fasta file
+                COUNT=`grep -c ">" $i.fna`              # This counts the number of >'s that appear in the file, each contig begins with >, so if its 0 there's not gene in the file
+                echo "$i:_$COUNT" | grep "_0"           # This just returns the file name and the number of >'s in the file, but ONLY the ones that have no >'s
+        fi
+done >$DIR/listofblanks.txt                             # This adds the output of the previous commands to a file called "listofblanks.sh" in the master directory containing the directories with fastas
+
+######
+# Now have a file containing a list of all fasta files that have no data in them
+######
+
+cd $DIR                                                                                 # I THINK the for loops ends in the last directory, so cd back to the original (this worked)
+grep "_0" listofblanks.txt | sed 's/:_0//1' | sed 's/^/rm -r /1' >toremoveblanks.sh     # This takes all entries of the blank list, and changes format from "<file-name>:_0" to "rm -r <file-name>", and assigns to a file
+                                                                                        # Now have a file that can be bashed
+
+######
+# Now just to cd to the original folder (to be sure we're there) and execute the file
+######
+
+cd $DIR                                                 # Again, just cd back to the original directory
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "DIRECTORY: $DIR"
+echo "REMOVING DIRECTORIES:"                            # Just information for the user, to show what files are being removed
+cat listofblanks.txt
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+bash  toremoveblanks.sh                                 # Bash the code for removing the files
+echo "REMOVAL COMPLETE."                                # Confirmation that the directories have been removed (USE A BOOLEAN TO MAKE IT AN ACTUAL CHECK FOR REMOVAL?)
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
+rm toremoveblanks.sh                                    # Just to preemptively tidy up the directory
+rm listofblanks.txt                                     # Comment these out to retain the files used to determine whats deleted
+
+cd $DIR
+echo "DIRECTORY: $DIR"
+echo "NO. OF DIRECTORIES AFTER REMOVAL"
+ls -d * | wc -l
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~"
